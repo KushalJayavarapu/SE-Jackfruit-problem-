@@ -12,7 +12,7 @@ def index():
     return render_template("index.html", models=model_service.list_models())
 
 
-# ---------- BL-01: models ----------
+# ---------- BL-01 / BL-02: models ----------
 
 @app.route("/api/models", methods=["GET"])
 def api_list_models():
@@ -27,6 +27,15 @@ def api_upload_model():
     except ValidationError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify(record), 201
+
+
+@app.route("/api/models/<model_id>/validate", methods=["POST"])
+def api_validate_model(model_id):
+    try:
+        record = model_service.validate_model(model_id)
+    except ValidationError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(record), 200
 
 
 if __name__ == "__main__":

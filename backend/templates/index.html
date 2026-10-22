@@ -8,7 +8,7 @@
 <body>
   <header>
     <h1>Web-Based ML Model Evaluator</h1>
-    <p class="subtitle">Sprint 1 &mdash; upload a model</p>
+    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it</p>
   </header>
 
   <main>
@@ -22,10 +22,19 @@
     </section>
 
     <section class="card">
+      <h2>2. Validate a model <span class="tag">BL-02</span></h2>
+      <form id="model-validate-form">
+        <select id="model-select" name="model_id" required></select>
+        <button type="submit">Validate</button>
+      </form>
+      <pre id="model-validate-result" class="result"></pre>
+    </section>
+
+    <section class="card">
       <h2>Uploaded so far</h2>
       <ul id="model-list">
         {% for m in models %}
-        <li>{{ m.original_filename }}</li>
+        <li>{{ m.original_filename }} &mdash; {{ m.validation_status }}</li>
         {% else %}
         <li class="empty">No models uploaded yet.</li>
         {% endfor %}
