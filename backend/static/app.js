@@ -54,4 +54,14 @@ document.getElementById("model-validate-form").addEventListener("submit", async 
   await loadModels();
 });
 
+document.getElementById("dataset-upload-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const resultEl = document.getElementById("dataset-upload-result");
+  const { ok, data } = await postForm("/api/datasets/upload", formData);
+  showResult(resultEl, ok, data);
+  if (ok) form.reset();
+});
+
 loadModels();
