@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Web-Based ML Model Evaluator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Web-Based ML Model Evaluator</h1>
+    <p class="subtitle">Sprint 1 &mdash; upload a model</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1. Upload a model <span class="tag">BL-01</span></h2>
+      <form id="model-upload-form">
+        <input type="file" name="model_file" accept=".pkl,.joblib" required>
+        <button type="submit">Upload model</button>
+      </form>
+      <pre id="model-upload-result" class="result"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Uploaded so far</h2>
+      <ul id="model-list">
+        {% for m in models %}
+        <li>{{ m.original_filename }}</li>
+        {% else %}
+        <li class="empty">No models uploaded yet.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
