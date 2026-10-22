@@ -8,7 +8,7 @@
 <body>
   <header>
     <h1>Web-Based ML Model Evaluator</h1>
-    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it</p>
+    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it, upload a test dataset</p>
   </header>
 
   <main>
@@ -31,12 +31,31 @@
     </section>
 
     <section class="card">
+      <h2>3. Upload a test dataset <span class="tag">BL-03</span></h2>
+      <form id="dataset-upload-form">
+        <input type="file" name="dataset_file" accept=".csv" required>
+        <input type="text" name="target_variable" placeholder="Target variable (column name)" required>
+        <button type="submit">Upload dataset</button>
+      </form>
+      <pre id="dataset-upload-result" class="result"></pre>
+    </section>
+
+    <section class="card">
       <h2>Uploaded so far</h2>
+      <h3>Models</h3>
       <ul id="model-list">
         {% for m in models %}
         <li>{{ m.original_filename }} &mdash; {{ m.validation_status }}</li>
         {% else %}
         <li class="empty">No models uploaded yet.</li>
+        {% endfor %}
+      </ul>
+      <h3>Datasets</h3>
+      <ul id="dataset-list">
+        {% for d in datasets %}
+        <li>{{ d.original_filename }} &mdash; {{ d.row_count }} rows, target: {{ d.target_variable }}</li>
+        {% else %}
+        <li class="empty">No datasets uploaded yet.</li>
         {% endfor %}
       </ul>
     </section>

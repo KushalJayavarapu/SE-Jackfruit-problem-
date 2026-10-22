@@ -1,9 +1,15 @@
-# Backend — BL-01, BL-02
+# Backend — Sprint 1 (BL-01, BL-02, BL-03)
+
+Flask app implementing the first 3 backlog items:
 
 - **BL-01** — upload a model file (`.pkl` / `.joblib`, ≤100 MB)
-- **BL-02** — validate an uploaded model: loads it, confirms it exposes
-  `predict()`, reports the inputs it expects (`n_features_in_`,
-  `feature_names_in_` where available)
+- **BL-02** — validate an uploaded model (loads it, confirms it exposes
+  `predict()`, reports the inputs it expects)
+- **BL-03** — upload a test dataset (`.csv`, ≤50,000 rows) with a target
+  variable
+
+Implements the per-file format checks and size limits from FR-02 and
+NFR-01 in the project's SRS.
 
 ## Run it
 
@@ -21,17 +27,18 @@ Open http://127.0.0.1:5000
 
 ```
 backend/
-  app.py
-  config.py
+  app.py                  # Flask routes
+  config.py                # limits, file paths
   services/
-    storage.py          # tiny JSON-file index (placeholder for a real DB)
-    model_service.py    # BL-01 upload_model(), BL-02 validate_model()
+    storage.py             # tiny JSON-file index (placeholder for a real DB)
+    model_service.py        # BL-01 upload_model(), BL-02 validate_model()
+    dataset_service.py      # BL-03 upload_dataset()
   templates/index.html
   static/style.css, app.js
-  storage/               # uploaded files + JSON index land here (gitignored)
+  storage/                # uploaded files + JSON indexes land here (gitignored)
 ```
 
 ## Not yet in scope
 
-Test dataset upload (BL-03), login/roles (FR-01), model↔dataset
-compatibility checking, running evaluations — later sprint items.
+Login/roles (FR-01), model↔dataset compatibility checking (back half of
+FR-02), running evaluations and metrics (BL-04/BL-05) — later sprint items.

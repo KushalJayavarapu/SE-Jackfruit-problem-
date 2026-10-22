@@ -1,6 +1,9 @@
 storage/models/*
+storage/datasets/*
 !storage/models/.gitkeep
+!storage/datasets/.gitkeep
 storage/models.json
+storage/datasets.json
 __pycache__/
 *.pyc
 venv/

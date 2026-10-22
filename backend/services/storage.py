@@ -2,9 +2,9 @@
 Tiny JSON-file-backed index, standing in for a real database for now.
 Each index file is a list of record dicts, keyed by "id".
 
-This is intentionally simple — swapping this for a real DB later is a
-later backlog item and shouldn't touch the routes or the service
-functions that call these helpers.
+This is intentionally simple (BL-01/02/03 scope only) — swapping this for
+a real DB later is a later backlog item and shouldn't touch the routes or
+the service functions that call these helpers.
 """
 import json
 import os
