@@ -60,5 +60,14 @@ def api_upload_dataset():
     return jsonify(record), 201
 
 
+@app.route("/api/datasets/<dataset_id>/validate", methods=["POST"])
+def api_validate_dataset(dataset_id):
+    try:
+        record = dataset_service.validate_dataset(dataset_id)
+    except ValidationError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(record), 200
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

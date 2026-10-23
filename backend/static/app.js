@@ -27,6 +27,24 @@ async function loadModels() {
   return models;
 }
 
+function refreshDatasetSelect(datasets) {
+  const select = document.getElementById("dataset-select");
+  select.innerHTML = "";
+  datasets.forEach((d) => {
+    const opt = document.createElement("option");
+    opt.value = d.id;
+    opt.textContent = `${d.original_filename} (${d.validation_status})`;
+    select.appendChild(opt);
+  });
+}
+
+async function loadDatasets() {
+  const res = await fetch("/api/datasets");
+  const datasets = await res.json();
+  refreshDatasetSelect(datasets);
+  return datasets;
+}
+
 document.getElementById("model-upload-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
@@ -61,7 +79,25 @@ document.getElementById("dataset-upload-form").addEventListener("submit", async 
   const resultEl = document.getElementById("dataset-upload-result");
   const { ok, data } = await postForm("/api/datasets/upload", formData);
   showResult(resultEl, ok, data);
-  if (ok) form.reset();
+  if (ok) {
+    form.reset();
+    await loadDatasets();
+  }
+});
+
+document.getElementById("dataset-validate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const datasetId = document.getElementById("dataset-select").value;
+  const resultEl = document.getElementById("dataset-validate-result");
+  if (!datasetId) {
+    showResult(resultEl, false, { error: "Upload a dataset first." });
+    return;
+  }
+  const res = await fetch(`/api/datasets/${datasetId}/validate`, { method: "POST" });
+  const data = await res.json();
+  showResult(resultEl, res.ok, data);
+  await loadDatasets();
 });
 
 loadModels();
+loadDatasets();
