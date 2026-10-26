@@ -8,7 +8,7 @@
 <body>
   <header>
     <h1>Web-Based ML Model Evaluator</h1>
-    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it, upload and validate a test dataset</p>
+    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it, upload and validate a test dataset, evaluate</p>
   </header>
 
   <main>
@@ -47,6 +47,20 @@
         <button type="submit">Validate</button>
       </form>
       <pre id="dataset-validate-result" class="result"></pre>
+    </section>
+
+    <section class="card">
+      <h2>5. Evaluate a model <span class="tag">BL-05</span></h2>
+      <form id="evaluate-form">
+        <select id="eval-model-select" required></select>
+        <select id="eval-dataset-select" required></select>
+        <select id="eval-task-select" required>
+          <option value="classification">classification</option>
+          <option value="regression">regression</option>
+        </select>
+        <button type="submit">Run evaluation</button>
+      </form>
+      <pre id="evaluate-result" class="result"></pre>
     </section>
 
     <section class="card">

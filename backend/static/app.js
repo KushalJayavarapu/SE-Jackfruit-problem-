@@ -9,15 +9,20 @@ function showResult(el, ok, data) {
   el.className = "result " + (ok ? "success" : "error");
 }
 
-function refreshModelSelect(models) {
-  const select = document.getElementById("model-select");
+function fillSelect(select, items) {
   select.innerHTML = "";
-  models.forEach((m) => {
+  items.forEach((item) => {
     const opt = document.createElement("option");
-    opt.value = m.id;
-    opt.textContent = `${m.original_filename} (${m.validation_status})`;
+    opt.value = item.id;
+    opt.textContent = `${item.original_filename} (${item.validation_status})`;
     select.appendChild(opt);
   });
+}
+
+function refreshModelSelect(models) {
+  fillSelect(document.getElementById("model-select"), models);
+  fillSelect(document.getElementById("eval-model-select"),
+    models.filter((m) => m.validation_status === "valid"));
 }
 
 async function loadModels() {
@@ -28,14 +33,9 @@ async function loadModels() {
 }
 
 function refreshDatasetSelect(datasets) {
-  const select = document.getElementById("dataset-select");
-  select.innerHTML = "";
-  datasets.forEach((d) => {
-    const opt = document.createElement("option");
-    opt.value = d.id;
-    opt.textContent = `${d.original_filename} (${d.validation_status})`;
-    select.appendChild(opt);
-  });
+  fillSelect(document.getElementById("dataset-select"), datasets);
+  fillSelect(document.getElementById("eval-dataset-select"),
+    datasets.filter((d) => d.validation_status === "valid"));
 }
 
 async function loadDatasets() {
@@ -97,6 +97,27 @@ document.getElementById("dataset-validate-form").addEventListener("submit", asyn
   const data = await res.json();
   showResult(resultEl, res.ok, data);
   await loadDatasets();
+});
+
+document.getElementById("evaluate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const resultEl = document.getElementById("evaluate-result");
+  const payload = {
+    model_id: document.getElementById("eval-model-select").value,
+    dataset_id: document.getElementById("eval-dataset-select").value,
+    task_type: document.getElementById("eval-task-select").value,
+  };
+  if (!payload.model_id || !payload.dataset_id) {
+    showResult(resultEl, false, { error: "You need at least one validated model and one validated dataset." });
+    return;
+  }
+  const res = await fetch("/api/evaluations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  showResult(resultEl, res.ok, data);
 });
 
 loadModels();
