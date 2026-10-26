@@ -1,6 +1,6 @@
-# Backend — Sprint 1 (BL-01 – BL-04)
+# Backend — BL-01 – BL-05
 
-Flask app implementing the first 4 backlog items:
+Flask app implementing the first 5 backlog items:
 
 - **BL-01** — upload a model file (`.pkl` / `.joblib`, ≤100 MB)
 - **BL-02** — validate an uploaded model (loads it, confirms it exposes
@@ -10,6 +10,10 @@ Flask app implementing the first 4 backlog items:
 - **BL-04** — validate an uploaded dataset (re-reads it, reports
   per-column dtype/missing-value counts, and flags it invalid if the
   target column has missing values or there are no feature columns)
+- **BL-05** — evaluate a validated model on a validated dataset for a
+  chosen task type. Checks model/dataset/task compatibility first, then
+  computes classification (accuracy, precision, recall, F1, ROC-AUC) or
+  regression (MAE, MSE, RMSE, R²) metrics and stores the result.
 
 Implements the per-file format checks and size limits from FR-02 and
 NFR-01 in the project's SRS.
@@ -36,6 +40,7 @@ backend/
     storage.py             # tiny JSON-file index (placeholder for a real DB)
     model_service.py        # BL-01 upload_model(), BL-02 validate_model()
     dataset_service.py      # BL-03 upload_dataset(), BL-04 validate_dataset()
+    evaluation_service.py   # BL-05 evaluate_model()
   templates/index.html
   static/style.css, app.js
   storage/                # uploaded files + JSON indexes land here (gitignored)
@@ -43,5 +48,5 @@ backend/
 
 ## Not yet in scope
 
-Login/roles (FR-01), model↔dataset compatibility checking (back half of
-FR-02), running evaluations and metrics (BL-05) — later sprint items.
+Login/roles (FR-01), displaying/visualizing metrics (BL-06), friendlier error handling (BL-07),
+UI polish (BL-08) — later items.

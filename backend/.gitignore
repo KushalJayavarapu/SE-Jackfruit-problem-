@@ -4,6 +4,7 @@ storage/datasets/*
 !storage/datasets/.gitkeep
 storage/models.json
 storage/datasets.json
+storage/evaluations.json
 __pycache__/
 *.pyc
 venv/

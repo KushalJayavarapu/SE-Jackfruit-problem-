@@ -8,6 +8,7 @@ DATASETS_DIR = os.path.join(STORAGE_DIR, "datasets")
 
 MODELS_INDEX = os.path.join(STORAGE_DIR, "models.json")
 DATASETS_INDEX = os.path.join(STORAGE_DIR, "datasets.json")
+EVALUATIONS_INDEX = os.path.join(STORAGE_DIR, "evaluations.json")
 
 # NFR-01: model file up to 100 MB, dataset up to 50,000 rows
 MAX_MODEL_SIZE_BYTES = 100 * 1024 * 1024

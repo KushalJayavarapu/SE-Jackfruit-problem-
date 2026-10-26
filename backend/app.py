@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 
-from services import model_service, dataset_service
+from services import model_service, dataset_service, evaluation_service
 from services.model_service import ValidationError
 
 app = Flask(__name__)
@@ -67,6 +67,24 @@ def api_validate_dataset(dataset_id):
     except ValidationError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(record), 200
+
+
+# ---------- BL-05: evaluation ----------
+
+@app.route("/api/evaluations", methods=["GET"])
+def api_list_evaluations():
+    return jsonify(evaluation_service.list_evaluations())
+
+
+@app.route("/api/evaluations", methods=["POST"])
+def api_run_evaluation():
+    body = request.get_json(silent=True) or {}
+    try:
+        record = evaluation_service.evaluate_model(
+            body.get("model_id", ""), body.get("dataset_id", ""), body.get("task_type", ""))
+    except ValidationError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(record), 201
 
 
 if __name__ == "__main__":
