@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Web-Based ML Model Evaluator</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header>
     <h1>Web-Based ML Model Evaluator</h1>
-    <p class="subtitle">Sprint 1 &mdash; upload a model, validate it, upload and validate a test dataset, evaluate</p>
+    <p class="subtitle">Upload and validate models and datasets, then evaluate model performance.</p>
   </header>
 
   <main>
@@ -24,7 +25,7 @@
     <section class="card">
       <h2>2. Validate a model <span class="tag">BL-02</span></h2>
       <form id="model-validate-form">
-        <select id="model-select" name="model_id" required></select>
+        <select id="model-select" name="model_id" required aria-label="Model to validate"></select>
         <button type="submit">Validate</button>
       </form>
       <pre id="model-validate-result" class="result"></pre>
@@ -34,7 +35,7 @@
       <h2>3. Upload a test dataset <span class="tag">BL-03</span></h2>
       <form id="dataset-upload-form">
         <input type="file" name="dataset_file" accept=".csv" required>
-        <input type="text" name="target_variable" placeholder="Target variable (column name)" required>
+        <input type="text" name="target_variable" placeholder="Target variable (column name)" required aria-label="Target variable">
         <button type="submit">Upload dataset</button>
       </form>
       <pre id="dataset-upload-result" class="result"></pre>
@@ -43,7 +44,7 @@
     <section class="card">
       <h2>4. Validate a dataset <span class="tag">BL-04</span></h2>
       <form id="dataset-validate-form">
-        <select id="dataset-select" name="dataset_id" required></select>
+        <select id="dataset-select" name="dataset_id" required aria-label="Dataset to validate"></select>
         <button type="submit">Validate</button>
       </form>
       <pre id="dataset-validate-result" class="result"></pre>
@@ -52,15 +53,21 @@
     <section class="card">
       <h2>5. Evaluate a model <span class="tag">BL-05</span></h2>
       <form id="evaluate-form">
-        <select id="eval-model-select" required></select>
-        <select id="eval-dataset-select" required></select>
-        <select id="eval-task-select" required>
-          <option value="classification">classification</option>
-          <option value="regression">regression</option>
+        <select id="eval-model-select" required aria-label="Validated model"></select>
+        <select id="eval-dataset-select" required aria-label="Validated dataset"></select>
+        <select id="eval-task-select" required aria-label="Evaluation task">
+          <option value="classification">Classification</option>
+          <option value="regression">Regression</option>
         </select>
         <button type="submit">Run evaluation</button>
       </form>
-      <pre id="evaluate-result" class="result"></pre>
+      <div id="evaluate-result" class="result" aria-live="polite">Choose a validated model and dataset to see evaluation metrics.</div>
+    </section>
+
+    <section class="card">
+      <h2>Evaluation history <span class="tag">BL-06</span></h2>
+      <p class="section-help">Review past results with the model, dataset, task type, and metrics for each run.</p>
+      <div id="evaluation-history" aria-live="polite"><p class="empty">Loading evaluation history…</p></div>
     </section>
 
     <section class="card">
