@@ -1,96 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Web-Based ML Model Evaluator</title>
+  <meta name="theme-color" content="#f5f7f4">
+  <title>Model Evaluator</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <h1>Web-Based ML Model Evaluator</h1>
-    <p class="subtitle">Upload and validate models and datasets, then evaluate model performance.</p>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <p class="eyebrow">Machine learning · evaluation workspace</p>
+      <h1>Model Evaluator</h1>
+      <p class="subtitle">Prepare your model and dataset, then review clear evaluation results.</p>
+      <nav aria-label="Page sections" class="section-nav">
+        <a href="#models">Models</a><a href="#datasets">Datasets</a>
+        <a href="#evaluate">Evaluation</a><a href="#history">History</a>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <section class="card">
-      <h2>1. Upload a model <span class="tag">BL-01</span></h2>
-      <form id="model-upload-form">
-        <input type="file" name="model_file" accept=".pkl,.joblib" required>
+  <main id="main-content" class="page-layout">
+    <section id="models" class="card" aria-labelledby="models-heading">
+      <div class="section-heading"><div><p class="step-label">Step 1</p><h2 id="models-heading">Add and validate a model</h2></div><span class="tag">.pkl · .joblib</span></div>
+      <p class="section-help">Upload a Python model file (up to 100 MB), then validate it before evaluation.</p>
+      <form id="model-upload-form" class="form-grid">
+        <div class="field"><label for="model-file">Model file</label><input id="model-file" type="file" name="model_file" accept=".pkl,.joblib" required aria-describedby="model-file-help"><small id="model-file-help">Supported formats: .pkl and .joblib</small></div>
         <button type="submit">Upload model</button>
       </form>
-      <pre id="model-upload-result" class="result"></pre>
-    </section>
-
-    <section class="card">
-      <h2>2. Validate a model <span class="tag">BL-02</span></h2>
-      <form id="model-validate-form">
-        <select id="model-select" name="model_id" required aria-label="Model to validate"></select>
-        <button type="submit">Validate</button>
+      <p id="model-upload-result" class="result" role="status" aria-live="polite"></p>
+      <form id="model-validate-form" class="form-grid validate-form">
+        <div class="field"><label for="model-select">Model to validate</label><select id="model-select" name="model_id" required></select></div>
+        <button type="submit">Validate model</button>
       </form>
-      <pre id="model-validate-result" class="result"></pre>
+      <p id="model-validate-result" class="result" role="status" aria-live="polite"></p>
     </section>
 
-    <section class="card">
-      <h2>3. Upload a test dataset <span class="tag">BL-03</span></h2>
-      <form id="dataset-upload-form">
-        <input type="file" name="dataset_file" accept=".csv" required>
-        <input type="text" name="target_variable" placeholder="Target variable (column name)" required aria-label="Target variable">
+    <section id="datasets" class="card" aria-labelledby="datasets-heading">
+      <div class="section-heading"><div><p class="step-label">Step 2</p><h2 id="datasets-heading">Add and validate a dataset</h2></div><span class="tag">CSV</span></div>
+      <p class="section-help">Upload a CSV file (up to 50,000 rows) and enter the exact name of its target column.</p>
+      <form id="dataset-upload-form" class="form-grid">
+        <div class="field"><label for="dataset-file">CSV dataset</label><input id="dataset-file" type="file" name="dataset_file" accept=".csv,text/csv" required></div>
+        <div class="field"><label for="target-variable">Target column</label><input id="target-variable" type="text" name="target_variable" placeholder="For example, diagnosis" required autocomplete="off"></div>
         <button type="submit">Upload dataset</button>
       </form>
-      <pre id="dataset-upload-result" class="result"></pre>
-    </section>
-
-    <section class="card">
-      <h2>4. Validate a dataset <span class="tag">BL-04</span></h2>
-      <form id="dataset-validate-form">
-        <select id="dataset-select" name="dataset_id" required aria-label="Dataset to validate"></select>
-        <button type="submit">Validate</button>
+      <p id="dataset-upload-result" class="result" role="status" aria-live="polite"></p>
+      <form id="dataset-validate-form" class="form-grid validate-form">
+        <div class="field"><label for="dataset-select">Dataset to validate</label><select id="dataset-select" name="dataset_id" required></select></div>
+        <button type="submit">Validate dataset</button>
       </form>
-      <pre id="dataset-validate-result" class="result"></pre>
+      <p id="dataset-validate-result" class="result" role="status" aria-live="polite"></p>
     </section>
 
-    <section class="card">
-      <h2>5. Evaluate a model <span class="tag">BL-05</span></h2>
-      <form id="evaluate-form">
-        <select id="eval-model-select" required aria-label="Validated model"></select>
-        <select id="eval-dataset-select" required aria-label="Validated dataset"></select>
-        <select id="eval-task-select" required aria-label="Evaluation task">
-          <option value="classification">Classification</option>
-          <option value="regression">Regression</option>
-        </select>
+    <section id="evaluate" class="card" aria-labelledby="evaluate-heading">
+      <div class="section-heading"><div><p class="step-label">Step 3</p><h2 id="evaluate-heading">Run an evaluation</h2></div><span class="tag">BL-05</span></div>
+      <p class="section-help">Choose a validated model, dataset, and task type. Validate uploads first if they are not listed here.</p>
+      <form id="evaluate-form" class="form-grid evaluation-form">
+        <div class="field"><label for="eval-model-select">Validated model</label><select id="eval-model-select" required></select></div>
+        <div class="field"><label for="eval-dataset-select">Validated dataset</label><select id="eval-dataset-select" required></select></div>
+        <div class="field"><label for="eval-task-select">Task type</label><select id="eval-task-select" required><option value="classification">Classification</option><option value="regression">Regression</option></select></div>
         <button type="submit">Run evaluation</button>
       </form>
-      <div id="evaluate-result" class="result" aria-live="polite">Choose a validated model and dataset to see evaluation metrics.</div>
+      <div id="evaluate-result" class="result evaluation-result" role="status" aria-live="polite" aria-atomic="true">Choose a validated model and dataset to see evaluation metrics.</div>
     </section>
 
-    <section class="card">
-      <h2>Evaluation history <span class="tag">BL-06</span></h2>
-      <p class="section-help">Review past results with the model, dataset, task type, and metrics for each run.</p>
+    <section id="history" class="card" aria-labelledby="history-heading">
+      <div class="section-heading"><div><p class="step-label">Your results</p><h2 id="history-heading">Evaluation history</h2></div><span class="tag">BL-06</span></div>
+      <p class="section-help">Past evaluations with timestamps, model and dataset names, task type, and metrics.</p>
       <div id="evaluation-history" aria-live="polite"><p class="empty">Loading evaluation history…</p></div>
     </section>
 
-    <section class="card">
-      <h2>Uploaded so far</h2>
-      <h3>Models</h3>
-      <ul id="model-list">
-        {% for m in models %}
-        <li>{{ m.original_filename }} &mdash; {{ m.validation_status }}</li>
-        {% else %}
-        <li class="empty">No models uploaded yet.</li>
-        {% endfor %}
-      </ul>
-      <h3>Datasets</h3>
-      <ul id="dataset-list">
-        {% for d in datasets %}
-        <li>{{ d.original_filename }} &mdash; {{ d.row_count }} rows, target: {{ d.target_variable }} &mdash; {{ d.validation_status }}</li>
-        {% else %}
-        <li class="empty">No datasets uploaded yet.</li>
-        {% endfor %}
-      </ul>
+    <section class="card" aria-labelledby="inventory-heading">
+      <div class="section-heading"><div><p class="step-label">Workspace</p><h2 id="inventory-heading">Uploaded files</h2></div></div>
+      <div class="inventory-grid"><div><h3>Models</h3><ul id="model-list">{% for m in models %}<li>{{ m.original_filename }} — {{ m.validation_status }}</li>{% else %}<li class="empty">No models uploaded yet. Add one above to get started.</li>{% endfor %}</ul></div>
+      <div><h3>Datasets</h3><ul id="dataset-list">{% for d in datasets %}<li>{{ d.original_filename }} — {{ d.row_count }} rows, target: {{ d.target_variable }} — {{ d.validation_status }}</li>{% else %}<li class="empty">No datasets uploaded yet. Add a CSV above to get started.</li>{% endfor %}</ul></div></div>
     </section>
   </main>
-
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </body>
 </html>
