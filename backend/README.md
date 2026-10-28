@@ -50,3 +50,28 @@ backend/
 
 Login/roles (FR-01), displaying/visualizing metrics (BL-06), friendlier error handling (BL-07),
 UI polish (BL-08) — later items.
+
+## Running the tests
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+python -m pytest tests
+```
+
+The suite has about 90 tests and runs in a couple of seconds. Every test uses its own
+temporary storage folder, so it never touches real uploads in `storage/`.
+
+Test names carry the case IDs from `documents/Web_Based_ML_Model_Evaluator_Test_Cases.pdf`
+(`UT` = unit, `IT` = integration, `ST` = system), so each test can be traced back to the plan:
+
+| File | Covers | Test plan cases |
+|---|---|---|
+| `test_model_service.py` | model upload and validation (BL-01, BL-02) | 04_UT_01 to 04_UT_03 |
+| `test_dataset_service.py` | dataset upload and validation (BL-03, BL-04) | 03_UT_01 to 03_UT_03 |
+| `test_evaluation_service.py` | task selection, compatibility, metrics, stored results (BL-05) | 05_*, 06_UT_03, 06_IT_03, 04_IT_02, 04_ST_02 |
+| `test_api_workflow.py` | full upload -> validate -> evaluate flow over HTTP, request validation and error handling (BL-07) | 03_ST_*, 04_ST_01, 04_IT_03, 05_ST_02, 06_ST_01, 06_ST_02 |
+| `test_app.py` | page and static-file smoke tests | n/a |
+
+Metric tests use models that always predict the same value, so the expected numbers
+are worked out by hand instead of being copied from the code's own output.
