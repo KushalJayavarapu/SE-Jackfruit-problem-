@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Datasets{% endblock %}
+{% block page %}datasets{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Datasets</h1>
+  <p class="lede">Upload the test data to evaluate against and tell us which column holds the true answer. Use data the model was not trained on.</p>
+</header>
+
+<section class="panel" aria-labelledby="upload-heading">
+  <h2 id="upload-heading">Upload a dataset</h2>
+  <form id="dataset-upload-form" class="stack">
+    <div class="upload-row">
+      <label class="filepick">
+        <input id="dataset-file" type="file" name="dataset_file" accept=".csv,text/csv" required>
+        <span class="filepick-label" data-empty="Choose a .csv file">Choose a .csv file</span>
+      </label>
+    </div>
+    <div class="field narrow">
+      <label for="target-variable">Target column</label>
+      <select id="target-variable" name="target_variable" required disabled aria-describedby="target-help">
+        <option value="">Choose a file first</option>
+      </select>
+      <small id="target-help">The column the model should predict. Every other column is treated as a feature.</small>
+    </div>
+    <div><button type="submit">Upload dataset</button></div>
+  </form>
+  <p class="help">CSV with a header row, up to {{ '{:,}'.format(max_rows) }} rows.</p>
+  <p id="dataset-upload-result" class="result" role="status" aria-live="polite"></p>
+</section>
+
+<section class="panel" aria-labelledby="list-heading">
+  <h2 id="list-heading">Your datasets</h2>
+  <div id="dataset-list" class="record-list" aria-live="polite"><p class="empty">Loading datasets…</p></div>
+</section>
+{% endblock %}

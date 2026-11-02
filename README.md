@@ -1,36 +1,40 @@
 # Web-Based ML Model Evaluator
 
-A small web app for evaluating a trained machine-learning model against a test
-dataset. Upload a model and a CSV dataset, validate both, pick a task type
-(classification or regression), and get the metrics back in the browser. Every
-run is saved to an evaluation history.
+A web app for evaluating trained machine-learning models. Analysts register,
+upload a model and a test dataset, pick a task type (classification or
+regression) and get metrics and charts. Every run is saved, so evaluations can
+be reopened, compared side by side and exported as a PDF report. Admins manage
+accounts and roles, with an audit log of every change.
 
 Built for the Software Engineering course project (team SE-Jackfruit).
 
 ## What it does
 
-| Step | What you do | What the app checks |
-|---|---|---|
-| 1. Model | Upload a `.pkl` or `.joblib` file (up to 100 MB), then validate it | File type and size, that it loads, that it has a `predict()` method |
-| 2. Dataset | Upload a `.csv` (up to 50,000 rows) and name the target column | File type and row limit, that the target column exists, no missing target values, at least one feature column |
-| 3. Evaluate | Pick a validated model, a validated dataset and a task type | Model and dataset columns match, the task type fits the model and target |
-| 4. Results | Read the metrics and the history table | - |
+| Area | What you can do |
+|---|---|
+| Accounts | Register as an Analyst, log in, log out. Admins create other Admins, suspend or reactivate accounts and change roles. |
+| Models | Upload `.pkl` or `.joblib` files (up to 100 MB), validate them, see which columns they expect and which of your datasets they fit. |
+| Datasets | Upload a `.csv` (up to 50,000 rows), pick the target column from a list, validate it. |
+| Evaluation | Pick a model, a dataset and a task type. The app checks they fit together first, then runs the model. |
+| Results | Metrics, a confusion matrix and ROC curve (classification) or residual and predicted-vs-actual plots (regression). |
+| History | Every evaluation is saved. Reopen it later with the same numbers and charts. |
+| Compare | Tick two or more evaluations of the same task type and see their metrics side by side. |
+| Reports | Download a PDF for one evaluation or several, including the charts. |
+| Privacy | Each Analyst sees only their own models, datasets and evaluations. |
 
-Metrics reported:
-
-- **Classification:** accuracy, precision, recall, F1 (all weighted) and ROC-AUC
-- **Regression:** MAE, MSE, RMSE and R²
+Metrics: accuracy, precision, recall, F1 (weighted) and ROC-AUC for
+classification; MAE, MSE, RMSE and R² for regression.
 
 ## System requirements
 
 - Python 3.10 or newer (developed and tested on 3.13)
 - pip
 - A modern browser (Chrome, Edge, Firefox or Safari)
-- About 500 MB of free disk space for the Python packages
+- About 600 MB of free disk space for the Python packages
 - Windows, macOS or Linux
 
-No database or other service is needed. Uploads and results are stored as files
-inside `backend/storage/`.
+No database server is needed. Accounts, results and the audit log live in a
+SQLite file at `backend/storage/evaluator.db`; uploaded files are stored next to it.
 
 ## Quick start
 
@@ -44,22 +48,40 @@ python -m venv venv
 # macOS / Linux:         source venv/bin/activate
 
 pip install -r requirements.txt
+
+# Create the first Admin account (asks for name, email and password)
+flask --app app create-admin
+
 python app.py
 ```
 
-Open http://127.0.0.1:5000 in your browser. Press `Ctrl+C` in the terminal to stop.
+Open http://127.0.0.1:5000. Log in as the Admin, or choose **Create an Analyst
+account** to register. Press `Ctrl+C` in the terminal to stop the app.
 
 If PowerShell refuses to run the activate script, run
 `Set-ExecutionPolicy -Scope Process Bypass` once in that window and try again.
 
-## Using the app
+**Want to try it quickly?** `backend/sample_data/` has two ready-made models and
+datasets. See its README.
 
-The full walkthrough is in **[docs/USAGE.md](docs/USAGE.md)**. It covers how to
-create a model and dataset the app accepts, what each metric means, every error
-message and its fix, and the HTTP API.
+## Accounts and roles
 
-In short: upload and validate a model, upload and validate a dataset, choose a
-task type, press **Run evaluation**.
+- **Registration is open but only creates Analysts.** No form or request can
+  create an Admin.
+- **The first Admin** is created from the command line with `flask --app app create-admin`.
+- **More Admins** are made by an existing Admin, either by changing an account's
+  role or by creating an account with the Admin role.
+- Admins can't suspend or change their own account, and the last active Admin
+  can never be suspended or demoted.
+- A suspended account is logged out immediately and can't log in until reactivated.
+- Sessions last 8 hours.
+
+## More documentation
+
+- **[docs/USAGE.md](docs/USAGE.md)**: user guide with file preparation, the
+  workflow, metrics, every error message and its fix, and the HTTP API.
+- **[backend/README.md](backend/README.md)**: code layout, settings and tests.
+- **[documents/](documents/)**: SRS, use cases, diagrams, security requirements, test plan and backlog.
 
 ## Running the tests
 
@@ -69,33 +91,42 @@ pip install -r requirements-dev.txt
 python -m pytest tests
 ```
 
-Tests use temporary storage and never touch your real uploads.
+About 220 tests, around 20 seconds. Tests use temporary storage and a temporary
+database, and never touch your real data.
 
 ## Project layout
 
 ```
 backend/
-  app.py              Flask routes and global error handling
-  config.py           size limits, allowed file types, storage paths
-  services/           model, dataset and evaluation logic, JSON-file storage
-  templates/, static/ the web page (HTML, CSS, JavaScript)
-  tests/              pytest suite
-  storage/            uploaded files and results (created at runtime, not in git)
-documents/            SRS, diagrams, test plan, backlog
-docs/USAGE.md         user guide and API reference
+  app.py               Flask routes, sessions, CSRF, error handling
+  config.py            limits, allowed file types, storage paths
+  services/            accounts, admin, models, datasets, evaluation, charts, reports
+  templates/, static/  the web pages (HTML, CSS, JavaScript)
+  sample_data/         ready-made models and datasets to try
+  tests/               pytest suite
+  storage/             database and uploaded files (created at runtime, not in git)
+docs/USAGE.md          user guide and API reference
+documents/             project documents
 ```
 
-## Security note
+## Security notes
 
-Model files are Python pickles. **Loading a pickle can run arbitrary code**, so
-only upload model files you created yourself or fully trust. The app is meant
-for local use by its owner; it has no login yet, so do not expose it to the
-internet.
+- **Model files are Python pickles. Loading one can run arbitrary code.** Only
+  upload models you created or fully trust.
+- Passwords are stored hashed. Forms and API calls are protected against CSRF.
+- Set `EVALUATOR_SECRET_KEY` to a long random value if you run the app anywhere
+  other than your own machine. Otherwise a key is generated and saved in `backend/storage/`.
+- The built-in server (`python app.py`) is for development and demos. For a
+  real deployment put the app behind a production server and HTTPS.
 
 ## Known limitations
 
-- No login or user roles yet (FR-01 in the SRS is not implemented).
-- Only scikit-learn style models are supported: the model must have `predict()`,
-  and `predict_proba()` for ROC-AUC.
-- Only CSV datasets, and only the two task types above.
-- Data is kept in local JSON files, not a database.
+- No password reset or email verification (there is no email service).
+- Only scikit-learn style models: `predict()` is required, and `predict_proba()` for ROC-AUC.
+- Only CSV datasets and the two task types above.
+- Evaluations of very large models run inside the web request. The 10-second
+  target (NFR-01) was measured with typical models (logistic regression,
+  random forest, linear regression) on 50,000 rows; a heavy model near the
+  100 MB limit may be slower.
+- Evaluation charts for regression show a random sample of 2,000 rows when the
+  dataset is larger. Metrics always use every row.

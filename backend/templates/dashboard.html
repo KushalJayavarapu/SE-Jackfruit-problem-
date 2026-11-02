@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block page %}dashboard{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Hello, {{ current_user.name.split(' ')[0] }}</h1>
+  <p class="lede">{{ models|length }} model{{ '' if models|length == 1 else 's' }}, {{ datasets|length }} dataset{{ '' if datasets|length == 1 else 's' }} and {{ evaluation_count }} evaluation{{ '' if evaluation_count == 1 else 's' }} in your workspace.</p>
+</header>
+
+<section class="panel" aria-labelledby="steps-heading">
+  <h2 id="steps-heading">From files to results</h2>
+  <ol class="steps">
+    <li class="{{ 'done' if has_valid_model }}">
+      <span class="step-state" aria-hidden="true"></span>
+      <div><a href="{{ url_for('models_page') }}">Add a model</a><p>Upload a .pkl or .joblib file and validate it.</p></div>
+      <span class="sr-only">{{ 'Done' if has_valid_model else 'Not done' }}</span>
+    </li>
+    <li class="{{ 'done' if has_valid_dataset }}">
+      <span class="step-state" aria-hidden="true"></span>
+      <div><a href="{{ url_for('datasets_page') }}">Add a test dataset</a><p>Upload a CSV, choose its target column and validate it.</p></div>
+      <span class="sr-only">{{ 'Done' if has_valid_dataset else 'Not done' }}</span>
+    </li>
+    <li class="{{ 'done' if evaluation_count }}">
+      <span class="step-state" aria-hidden="true"></span>
+      <div><a href="{{ url_for('evaluate_page') }}">Run an evaluation</a><p>Pick the model, the dataset and the task type.</p></div>
+      <span class="sr-only">{{ 'Done' if evaluation_count else 'Not done' }}</span>
+    </li>
+    <li class="{{ 'done' if evaluation_count > 1 }}">
+      <span class="step-state" aria-hidden="true"></span>
+      <div><a href="{{ url_for('history_page') }}">Compare and report</a><p>Put evaluations side by side and download a PDF report.</p></div>
+      <span class="sr-only">{{ 'Done' if evaluation_count > 1 else 'Not done' }}</span>
+    </li>
+  </ol>
+</section>
+
+<section class="panel" aria-labelledby="recent-heading">
+  <div class="panel-head">
+    <h2 id="recent-heading">Recent evaluations</h2>
+    {% if evaluations %}<a href="{{ url_for('history_page') }}">See all</a>{% endif %}
+  </div>
+  {% if evaluations %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Dataset</th><th>Task</th><th class="num">Headline</th><th>When</th></tr></thead>
+      <tbody>
+      {% for e in evaluations %}
+        <tr>
+          <td><a href="{{ url_for('evaluation_page', evaluation_id=e.id) }}">{{ e.model_filename }}</a></td>
+          <td>{{ e.dataset_filename }}</td>
+          <td><span class="task task-{{ e.task_type }}">{{ e.task_type|capitalize }}</span></td>
+          <td class="num">{% if e.task_type == 'classification' %}Accuracy {{ '%.3f'|format(e.metrics.accuracy) }}{% else %}R² {{ '%.3f'|format(e.metrics.r2) }}{% endif %}</td>
+          <td><time datetime="{{ e.evaluated_at }}" data-local-time>{{ e.evaluated_at[:16]|replace('T', ' ') }}</time></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No evaluations yet. Once you have a validated model and dataset, <a href="{{ url_for('evaluate_page') }}">run your first evaluation</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

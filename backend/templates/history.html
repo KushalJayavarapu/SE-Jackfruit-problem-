@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block page %}history{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Evaluation history</h1>
+  <p class="lede">Every evaluation you run is saved here. Open one to see its metrics and charts, or tick several to compare them or put them in one report.</p>
+</header>
+
+<section class="panel">
+  <div class="toolbar" id="history-toolbar">
+    <p id="selection-status" class="selection-status" aria-live="polite">Nothing selected</p>
+    <div class="toolbar-actions">
+      <button type="button" id="compare-button" class="secondary" disabled>Compare selected</button>
+      <button type="button" id="report-button" disabled>Download report</button>
+    </div>
+  </div>
+  <p id="history-warning" class="notice notice-warning" role="alert" hidden></p>
+  <div id="evaluation-history" aria-live="polite"><p class="empty">Loading evaluation history…</p></div>
+</section>
+{% endblock %}

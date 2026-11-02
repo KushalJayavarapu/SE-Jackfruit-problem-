@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block page %}admin-audit{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Audit log</h1>
+  <p class="lede">Every account created, suspended, reactivated or given a new role, newest first.</p>
+</header>
+<section class="panel">
+  {% if entries %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>When</th><th>Changed by</th><th>Account</th><th>Change</th></tr></thead>
+      <tbody>
+      {% for e in entries %}
+        <tr>
+          <td><time datetime="{{ e.created_at }}" data-local-time>{{ e.created_at[:19]|replace('T', ' ') }} UTC</time></td>
+          <td>{{ e.actor_email }}</td>
+          <td>{{ e.target_email }}</td>
+          <td>
+            {% if e.action == 'create_account' %}Account created as {{ e.new_value|capitalize }}
+            {% elif e.action == 'suspend' %}Suspended
+            {% elif e.action == 'reactivate' %}Reactivated
+            {% elif e.action == 'role_change' %}Role changed from {{ e.old_value|capitalize }} to {{ e.new_value|capitalize }}
+            {% else %}{{ e.action }}{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No account changes yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

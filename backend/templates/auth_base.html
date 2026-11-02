@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block main_class %}auth{% endblock %}
+{% block content %}
+<div class="auth-layout">
+  <section class="auth-story" aria-hidden="true">
+    <div class="brand brand-light"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span class="brand-name">Model Evaluator</span></div>
+    <div class="matrix-figure">
+      <div class="matrix">
+        <span class="cell hit">482</span><span class="cell miss">17</span>
+        <span class="cell miss">23</span><span class="cell hit">478</span>
+      </div>
+      <div class="matrix-axis-x">Predicted</div>
+      <div class="matrix-axis-y">Actual</div>
+    </div>
+    <p class="auth-pitch">Upload a trained model and a test set. Get the metrics, the charts and a report you can hand in.</p>
+  </section>
+  <section class="auth-panel">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="notice notice-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+    {% block auth_form %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

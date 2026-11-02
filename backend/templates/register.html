@@ -1,0 +1,29 @@
+{% extends "auth_base.html" %}
+{% block title %}Create account{% endblock %}
+{% block page %}register{% endblock %}
+{% block auth_form %}
+<h1>Create an Analyst account</h1>
+<p class="lede">You can start uploading as soon as the account is created. Admin accounts are set up by an existing Admin.</p>
+<form method="post" class="stack" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="field">
+    <label for="name">Name</label>
+    <input id="name" name="name" autocomplete="name" value="{{ form.name }}" maxlength="80" required autofocus>
+  </div>
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" value="{{ form.email }}" required>
+  </div>
+  <div class="field">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-help">
+    <small id="password-help">At least 8 characters.</small>
+  </div>
+  <div class="field">
+    <label for="confirm_password">Confirm password</label>
+    <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+  </div>
+  <button type="submit" class="wide">Create account</button>
+</form>
+<p class="switch">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+{% endblock %}

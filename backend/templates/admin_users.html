@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Accounts{% endblock %}
+{% block page %}admin-users{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Accounts</h1>
+  <p class="lede">Suspend or reactivate accounts and change roles. Every change is recorded in the audit log. You can't change your own account, and there must always be at least one active Admin.</p>
+</header>
+
+<section class="panel" aria-labelledby="users-heading">
+  <h2 id="users-heading">All accounts</h2>
+  <div id="user-list" aria-live="polite"><p class="empty">Loading accounts…</p></div>
+</section>
+
+<section class="panel" aria-labelledby="create-heading">
+  <h2 id="create-heading">Create an account</h2>
+  <p class="help">This is the only way to create another Admin. Share the password with the person directly.</p>
+  <form id="create-user-form" class="grid-2">
+    <div class="field"><label for="new-name">Name</label><input id="new-name" name="name" maxlength="80" required autocomplete="off"></div>
+    <div class="field"><label for="new-email">Email</label><input id="new-email" name="email" type="email" required autocomplete="off"></div>
+    <div class="field"><label for="new-password">Starting password</label><input id="new-password" name="password" type="password" minlength="{{ min_password }}" required autocomplete="new-password"><small>At least {{ min_password }} characters.</small></div>
+    <div class="field"><label for="new-role">Role</label><select id="new-role" name="role"><option value="analyst">Analyst</option><option value="admin">Admin</option></select></div>
+    <div><button type="submit">Create account</button></div>
+  </form>
+  <p id="create-user-result" class="result" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}

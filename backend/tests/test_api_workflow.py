@@ -67,6 +67,10 @@ def test_03_ST_01_04_ST_01_06_ST_01_classification_workflow_end_to_end(
     history = api_client.get("/api/evaluations").get_json()
     assert [e["id"] for e in history] == [result["id"]]
 
+    # UC-07 / UC-10: the saved evaluation can be reopened with the same values.
+    reopened = api_client.get(f"/api/evaluations/{result['id']}").get_json()
+    assert reopened["metrics"] == result["metrics"]
+
 
 def test_regression_workflow_end_to_end(api_client, regressor_bytes, regression_csv):
     model = upload_and_validate_model(api_client, regressor_bytes)
@@ -92,7 +96,7 @@ def test_several_models_can_be_evaluated_against_one_dataset(
     assert len(api_client.get("/api/evaluations").get_json()) == 2
 
 
-def test_uploads_appear_in_list_endpoints_and_on_the_home_page(
+def test_uploads_appear_in_the_list_endpoints(
     api_client, classifier_bytes, classification_csv
 ):
     post_model(api_client, classifier_bytes, "my_model.pkl")
@@ -100,8 +104,6 @@ def test_uploads_appear_in_list_endpoints_and_on_the_home_page(
 
     assert [m["original_filename"] for m in api_client.get("/api/models").get_json()] == ["my_model.pkl"]
     assert [d["original_filename"] for d in api_client.get("/api/datasets").get_json()] == ["my_data.csv"]
-    page = api_client.get("/").get_data(as_text=True)
-    assert "my_model.pkl" in page and "my_data.csv" in page
 
 
 def test_nothing_is_stored_for_rejected_uploads(api_client):
@@ -248,7 +250,7 @@ def test_wrong_http_method_returns_json_405(api_client):
 
 
 def test_unexpected_server_error_returns_generic_500_without_leaking_details(api_client, monkeypatch):
-    def explode():
+    def explode(*args, **kwargs):
         raise RuntimeError("secret internal detail /etc/passwd")
 
     monkeypatch.setattr(app_module.model_service, "list_models", explode)

@@ -1,0 +1,3 @@
+{% macro metric_value(value) -%}
+{%- if value is none -%}n/a{%- elif value|abs >= 100000 -%}{{ '%.4g'|format(value) }}{%- else -%}{{ '%.4f'|format(value) }}{%- endif -%}
+{%- endmacro %}

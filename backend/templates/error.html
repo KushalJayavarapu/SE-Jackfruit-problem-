@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+{% block content %}
+<section class="empty-page">
+  <p class="error-code">{{ code }}</p>
+  <h1>{% if code == 403 %}You don't have access to this page{% elif code == 404 %}Not found{% else %}Something went wrong{% endif %}</h1>
+  <p class="lede">{{ message }}</p>
+  <p><a class="button" href="{{ url_for('index') }}">Go to your dashboard</a></p>
+</section>
+{% endblock %}
