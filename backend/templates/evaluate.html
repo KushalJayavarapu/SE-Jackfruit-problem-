@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Evaluate{% endblock %}
+{% block page %}evaluate{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Run an evaluation</h1>
+  <p class="lede">Choose a validated model and dataset, then say what kind of task the model does. The app checks they fit together before running anything.</p>
+</header>
+
+<section class="panel">
+  <div id="evaluate-empty" class="empty" hidden></div>
+  <form id="evaluate-form" class="stack" hidden>
+    <div class="grid-2">
+      <div class="field">
+        <label for="eval-model">Model</label>
+        <select id="eval-model" required></select>
+      </div>
+      <div class="field">
+        <label for="eval-dataset">Dataset</label>
+        <select id="eval-dataset" required></select>
+      </div>
+    </div>
+    <p id="pair-check" class="pair-check" role="status" aria-live="polite"></p>
+    <fieldset class="choice-group">
+      <legend>Task type</legend>
+      <label class="choice">
+        <input type="radio" name="task_type" value="classification" required>
+        <span><strong>Classification</strong>The model predicts a category, such as spam or not spam. You get accuracy, precision, recall, F1, ROC-AUC, a confusion matrix and a ROC curve.</span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="task_type" value="regression">
+        <span><strong>Regression</strong>The model predicts a number, such as a price. You get MAE, MSE, RMSE, R², a residual plot and predicted vs actual.</span>
+      </label>
+    </fieldset>
+    <div><button type="submit">Run evaluation</button></div>
+  </form>
+  <p id="evaluate-result" class="result" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}

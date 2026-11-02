@@ -1,0 +1,20 @@
+{% extends "auth_base.html" %}
+{% block title %}Log in{% endblock %}
+{% block page %}login{% endblock %}
+{% block auth_form %}
+<h1>Log in</h1>
+<p class="lede">Analysts and Admins both log in here.</p>
+<form method="post" class="stack" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" value="{{ email }}" required autofocus>
+  </div>
+  <div class="field">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+  </div>
+  <button type="submit" class="wide">Log in</button>
+</form>
+<p class="switch">New here? <a href="{{ url_for('register') }}">Create an Analyst account</a></p>
+{% endblock %}

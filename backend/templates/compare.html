@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import metric_value %}
+{% block title %}Compare{% endblock %}
+{% block page %}compare{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="{{ url_for('history_page') }}">History</a><span aria-hidden="true">/</span><span>Compare</span></nav>
+{% if error %}
+<header class="page-head"><h1>Can't compare these evaluations</h1></header>
+<p class="notice notice-warning" role="alert">{{ error }}</p>
+<p><a class="button secondary" href="{{ url_for('history_page') }}">Back to history</a></p>
+{% else %}
+<header class="page-head with-actions">
+  <div>
+    <h1>Comparing {{ comparison.evaluations|length }} {{ comparison.task_type }} evaluations</h1>
+    <p class="lede">Metrics side by side. Which model is better depends on what matters for your problem, so nothing is ranked for you.</p>
+  </div>
+  <div class="head-actions">
+    <button type="button" class="js-report" data-ids="{{ ids }}">Download comparison report</button>
+  </div>
+</header>
+
+<section class="panel">
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th scope="col">Metric</th>
+          {% for e in comparison.evaluations %}
+          <th scope="col"><a href="{{ url_for('evaluation_page', evaluation_id=e.id) }}">{{ loop.index }}. {{ e.model_filename }}</a><span class="sub">{{ e.dataset_filename }}</span></th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for key in comparison.metric_keys %}
+        {% set name, higher = metric_info[key] %}
+        <tr>
+          <th scope="row">{{ name }}<span class="sub">{{ 'Higher' if higher else 'Lower' }} is better</span></th>
+          {% for e in comparison.evaluations %}<td class="num">{{ metric_value(e.metrics.get(key)) }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+        <tr>
+          <th scope="row">Rows evaluated</th>
+          {% for e in comparison.evaluations %}<td class="num">{{ '{:,}'.format(e.row_count) }}</td>{% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<figure class="chart chart-wide">
+  <figcaption>Metrics by evaluation</figcaption>
+  <img src="{{ url_for('api_compare_chart', ids=ids) }}" alt="Bar charts comparing each metric across the selected evaluations">
+</figure>
+{% endif %}
+{% endblock %}

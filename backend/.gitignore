@@ -2,9 +2,10 @@ storage/models/*
 storage/datasets/*
 !storage/models/.gitkeep
 !storage/datasets/.gitkeep
-storage/models.json
-storage/datasets.json
-storage/evaluations.json
+storage/*.db
+storage/*.db-journal
+storage/.secret_key
+storage/*.json
 __pycache__/
 *.pyc
 venv/

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Models{% endblock %}
+{% block page %}models{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Models</h1>
+  <p class="lede">Upload a trained scikit-learn model, then validate it. Validation loads the file, checks it can make predictions and lists the columns it expects.</p>
+</header>
+
+<section class="panel" aria-labelledby="upload-heading">
+  <h2 id="upload-heading">Upload a model</h2>
+  <form id="model-upload-form" class="upload-row">
+    <label class="filepick">
+      <input id="model-file" type="file" name="model_file" accept=".pkl,.joblib" required aria-describedby="model-file-help">
+      <span class="filepick-label" data-empty="Choose a .pkl or .joblib file">Choose a .pkl or .joblib file</span>
+    </label>
+    <button type="submit">Upload model</button>
+  </form>
+  <p id="model-file-help" class="help">Up to {{ max_mb }} MB. Only upload model files you created or trust: loading a model file runs code.</p>
+  <p id="model-upload-result" class="result" role="status" aria-live="polite"></p>
+</section>
+
+<section class="panel" aria-labelledby="list-heading">
+  <h2 id="list-heading">Your models</h2>
+  <div id="model-list" class="record-list" aria-live="polite"><p class="empty">Loading models…</p></div>
+</section>
+{% endblock %}

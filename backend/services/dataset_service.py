@@ -1,29 +1,23 @@
 """
-BL-03: Allow users to upload/select a test dataset
-BL-04: Validate test dataset format and required inputs
-
-Implements the dataset side of FR-02: format checked independently at
-upload, target variable specified during the upload, and the 50,000-row
-limit from NFR-01. BL-04 goes a layer deeper than the upload-time check:
-it looks at missing values, per-column types, and whether the target
-column is actually usable for evaluation.
+BL-03: upload a dataset with its target column.  BL-04: validate it.
+Every dataset belongs to the account that uploaded it (NFR-02).
 """
 import os
 import uuid
-import datetime
 
 import pandas as pd
 
-from config import DATASETS_DIR, DATASETS_INDEX, ALLOWED_DATASET_EXTENSIONS, MAX_DATASET_ROWS
-from services import storage
-from services.model_service import ValidationError  # same error type, shared meaning
+import config
+from services import compatibility, db
+from services.errors import NotFoundError, ValidationError
+from services.timeutil import now_iso
 
 
 def _extension_of(filename):
     return os.path.splitext(filename)[1].lower()
 
 
-def upload_dataset(file_storage, target_variable):
+def upload_dataset(file_storage, target_variable, owner_id):
     if not file_storage or file_storage.filename == "":
         raise ValidationError("No file was selected.")
 
@@ -31,12 +25,12 @@ def upload_dataset(file_storage, target_variable):
         raise ValidationError("A target variable must be specified for this dataset.")
     target_variable = target_variable.strip()
 
-    original_filename = file_storage.filename
+    original_filename = os.path.basename(file_storage.filename)
     ext = _extension_of(original_filename)
-    if ext not in ALLOWED_DATASET_EXTENSIONS:
+    if ext not in config.ALLOWED_DATASET_EXTENSIONS:
         raise ValidationError(
             f"Unsupported dataset file type '{ext or 'unknown'}'. "
-            f"Accepted types: {', '.join(sorted(ALLOWED_DATASET_EXTENSIONS))}."
+            f"Accepted types: {', '.join(sorted(config.ALLOWED_DATASET_EXTENSIONS))}."
         )
 
     try:
@@ -48,121 +42,128 @@ def upload_dataset(file_storage, target_variable):
         raise ValidationError("The dataset file has no rows.")
 
     row_count = len(df)
-    if row_count > MAX_DATASET_ROWS:
+    if row_count > config.MAX_DATASET_ROWS:
         raise ValidationError(
-            f"Dataset has {row_count} rows, exceeding the {MAX_DATASET_ROWS} row limit."
+            f"Dataset has {row_count} rows, exceeding the {config.MAX_DATASET_ROWS} row limit."
         )
 
-    if target_variable not in df.columns:
+    columns = [str(c) for c in df.columns]
+    if target_variable not in columns:
         raise ValidationError(
             f"Target variable '{target_variable}' is not a column in this dataset. "
-            f"Available columns: {', '.join(df.columns)}."
+            f"Available columns: {', '.join(columns)}."
         )
 
     dataset_id = str(uuid.uuid4())
     stored_filename = f"{dataset_id}{ext}"
-    stored_path = os.path.join(DATASETS_DIR, stored_filename)
-    df.to_csv(stored_path, index=False)
+    df.to_csv(os.path.join(config.DATASETS_DIR, stored_filename), index=False)
 
     record = {
         "id": dataset_id,
+        "owner_id": owner_id,
         "original_filename": original_filename,
         "stored_filename": stored_filename,
         "row_count": row_count,
-        "columns": list(df.columns),
+        "columns": columns,
         "target_variable": target_variable,
-        "uploaded_at": datetime.datetime.utcnow().isoformat() + "Z",
-        "format_checked": True,
-        "validation_status": "not_validated",  # set by validate_dataset()
+        "uploaded_at": now_iso(),
+        "validation_status": "not_validated",
         "validation_message": None,
         "schema_summary": None,
     }
-    storage.add_record(DATASETS_INDEX, record)
+    db.insert("datasets", record)
     return record
 
 
-def validate_dataset(dataset_id):
-    """
-    BL-04: re-read the stored dataset and check it is actually usable for
-    evaluation — not just parseable (that was checked at upload in
-    upload_dataset / FR-02). Reports per-column type/missing-value info
-    so an Analyst can see what the dataset actually looks like, and flags
-    the dataset invalid if the target column itself isn't usable.
-    """
-    record = storage.get_record(DATASETS_INDEX, dataset_id)
-    if record is None:
-        raise ValidationError("No such dataset upload.")
+def get_dataset(dataset_id, owner_id):
+    return db.fetch_one("datasets", "id = ? AND owner_id = ?", (dataset_id, owner_id))
 
-    stored_path = os.path.join(DATASETS_DIR, record["stored_filename"])
+
+def list_datasets(owner_id):
+    return db.fetch_all("datasets", "owner_id = ?", (owner_id,))
+
+
+def _set_validation(dataset_id, status, message, schema_summary=None):
+    db.update("datasets", dataset_id, {
+        "validation_status": status,
+        "validation_message": message,
+        "schema_summary": schema_summary,
+    })
+
+
+def validate_dataset(dataset_id, owner_id):
+    """
+    Re-read the stored file and check it is usable for evaluation: the target
+    has no missing values and there is at least one feature column.
+    """
+    record = get_dataset(dataset_id, owner_id)
+    if record is None:
+        raise NotFoundError("No such dataset upload.")
 
     try:
-        df = pd.read_csv(stored_path)
-    except Exception as exc:  # noqa: BLE001 - surfaced as a clear reason
-        updated = storage.update_record(DATASETS_INDEX, dataset_id, {
-            "validation_status": "invalid",
-            "validation_message": f"Could not re-read the dataset file: {exc}",
-            "schema_summary": None,
-        })
-        return updated
+        df = pd.read_csv(os.path.join(config.DATASETS_DIR, record["stored_filename"]))
+    except Exception as exc:  # noqa: BLE001
+        _set_validation(dataset_id, "invalid", f"Could not re-read the dataset file: {exc}")
+        return get_dataset(dataset_id, owner_id)
 
-    target_variable = record["target_variable"]
-    if target_variable not in df.columns:
-        updated = storage.update_record(DATASETS_INDEX, dataset_id, {
-            "validation_status": "invalid",
-            "validation_message": f"Target variable '{target_variable}' is missing from the file.",
-            "schema_summary": None,
-        })
-        return updated
+    target = record["target_variable"]
+    if target not in df.columns:
+        _set_validation(dataset_id, "invalid", f"Target variable '{target}' is missing from the file.")
+        return get_dataset(dataset_id, owner_id)
 
-    target_missing = int(df[target_variable].isna().sum())
+    target_missing = int(df[target].isna().sum())
     if target_missing > 0:
-        updated = storage.update_record(DATASETS_INDEX, dataset_id, {
-            "validation_status": "invalid",
-            "validation_message": (
-                f"Target variable '{target_variable}' has {target_missing} missing "
-                f"value(s); every row needs a target value to evaluate against."
-            ),
-            "schema_summary": None,
-        })
-        return updated
+        _set_validation(dataset_id, "invalid", (
+            f"Target variable '{target}' has {target_missing} missing "
+            f"value(s); every row needs a target value to evaluate against."
+        ))
+        return get_dataset(dataset_id, owner_id)
 
-    columns_summary = []
-    for col in df.columns:
-        columns_summary.append({
-            "name": col,
-            "dtype": str(df[col].dtype),
-            "missing_count": int(df[col].isna().sum()),
-            "is_target": col == target_variable,
-        })
-
-    feature_columns = [c for c in df.columns if c != target_variable]
+    feature_columns = [c for c in df.columns if c != target]
     if not feature_columns:
-        updated = storage.update_record(DATASETS_INDEX, dataset_id, {
-            "validation_status": "invalid",
-            "validation_message": "Dataset has no feature columns besides the target variable.",
-            "schema_summary": None,
-        })
-        return updated
+        _set_validation(dataset_id, "invalid", "Dataset has no feature columns besides the target variable.")
+        return get_dataset(dataset_id, owner_id)
 
     schema_summary = {
         "row_count": len(df),
         "feature_columns": feature_columns,
-        "target_variable": target_variable,
-        "columns": columns_summary,
+        "target_variable": target,
+        "columns": [{
+            "name": col,
+            "dtype": str(df[col].dtype),
+            "missing_count": int(df[col].isna().sum()),
+            "is_target": col == target,
+        } for col in df.columns],
         "duplicate_rows": int(df.duplicated().sum()),
     }
+    _set_validation(dataset_id, "valid",
+                    "Dataset re-read successfully; target variable has no missing values.", schema_summary)
 
-    updated = storage.update_record(DATASETS_INDEX, dataset_id, {
-        "validation_status": "valid",
-        "validation_message": "Dataset re-read successfully; target variable has no missing values.",
-        "schema_summary": schema_summary,
-    })
-    return updated
-
-
-def get_dataset(dataset_id):
-    return storage.get_record(DATASETS_INDEX, dataset_id)
+    result = get_dataset(dataset_id, owner_id)
+    result["compatibility"] = model_compatibility(result, owner_id)
+    return result
 
 
-def list_datasets():
-    return storage.list_records(DATASETS_INDEX)
+def model_compatibility(dataset_record, owner_id):
+    """Check the dataset against each of the owner's validated models."""
+    models = db.fetch_all("models", "owner_id = ? AND validation_status = 'valid'", (owner_id,))
+    report = []
+    for model in models:
+        ok, reason = compatibility.check_records(model, dataset_record)
+        report.append({
+            "model_id": model["id"],
+            "model_filename": model["original_filename"],
+            "compatible": ok,
+            "reason": reason,
+        })
+    return report
+
+
+def delete_dataset(dataset_id, owner_id):
+    record = get_dataset(dataset_id, owner_id)
+    if record is None:
+        raise NotFoundError("No such dataset upload.")
+    path = os.path.join(config.DATASETS_DIR, record["stored_filename"])
+    if os.path.exists(path):
+        os.remove(path)
+    db.delete("datasets", dataset_id)

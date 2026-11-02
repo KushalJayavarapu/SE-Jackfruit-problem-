@@ -8,13 +8,13 @@ import pytest
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 
-from conftest import csv_bytes, pickle_bytes, upload
+from conftest import owner, csv_bytes, pickle_bytes, upload
 from services import dataset_service, evaluation_service, model_service
 from services.model_service import ValidationError
 
 
 def evaluate(model, dataset, task):
-    return evaluation_service.evaluate_model(model["id"], dataset["id"], task)
+    return evaluation_service.evaluate_model(model["id"], dataset["id"], task, owner())
 
 
 # ---------------- 06_UT_03: metrics are calculated correctly ----------------
@@ -122,7 +122,7 @@ def test_unknown_task_type_is_rejected(
     model = add_valid_model(classifier_bytes)
     dataset = add_valid_dataset(classification_csv)
     with pytest.raises(ValidationError, match="Task type must be"):
-        evaluation_service.evaluate_model(model["id"], dataset["id"], task)
+        evaluation_service.evaluate_model(model["id"], dataset["id"], task, owner())
 
 
 # ---------------- 05_IT_03 / 05_ST_02: task must match model and data ----------------
@@ -205,13 +205,13 @@ def test_dataset_column_order_does_not_matter(
 # ---------------- inputs must be validated first ----------------
 
 def test_unvalidated_model_cannot_be_evaluated(classifier_bytes, classification_csv, add_valid_dataset):
-    model = model_service.upload_model(upload(classifier_bytes, "m.pkl"))   # never validated
+    model = model_service.upload_model(upload(classifier_bytes, "m.pkl"), owner())   # never validated
     with pytest.raises(ValidationError, match="model has not passed validation"):
         evaluate(model, add_valid_dataset(classification_csv), "classification")
 
 
 def test_unvalidated_dataset_cannot_be_evaluated(classifier_bytes, classification_csv, add_valid_model):
-    dataset = dataset_service.upload_dataset(upload(classification_csv, "d.csv"), "label")  # never validated
+    dataset = dataset_service.upload_dataset(upload(classification_csv, "d.csv"), "label", owner())  # never validated
     with pytest.raises(ValidationError, match="dataset has not passed validation"):
         evaluate(add_valid_model(classifier_bytes), dataset, "classification")
 
@@ -227,9 +227,9 @@ def test_unknown_model_and_dataset_ids_are_rejected(classifier_bytes, classifica
     model = add_valid_model(classifier_bytes)
     dataset = add_valid_dataset(classification_csv)
     with pytest.raises(ValidationError, match="No such model"):
-        evaluation_service.evaluate_model("nope", dataset["id"], "classification")
+        evaluation_service.evaluate_model("nope", dataset["id"], "classification", owner())
     with pytest.raises(ValidationError, match="No such dataset"):
-        evaluation_service.evaluate_model(model["id"], "nope", "classification")
+        evaluation_service.evaluate_model(model["id"], "nope", "classification", owner())
 
 
 # ---------------- 06_IT_03: results are stored ----------------
@@ -250,7 +250,7 @@ def test_06_IT_03_completed_evaluation_is_stored_with_its_metadata(
     assert result["row_count"] == 60
     assert result["evaluated_at"].endswith("Z")
     assert result["duration_seconds"] >= 0
-    assert evaluation_service.list_evaluations() == [result]
+    assert evaluation_service.list_evaluations(owner()) == [result]
 
 
 def test_running_the_same_evaluation_twice_stores_two_records(
@@ -262,7 +262,7 @@ def test_running_the_same_evaluation_twice_stores_two_records(
     second = evaluate(model, dataset, "classification")
 
     assert first["id"] != second["id"]
-    assert len(evaluation_service.list_evaluations()) == 2
+    assert len(evaluation_service.list_evaluations(owner())) == 2
 
 
 # ---------------- 06_ST_02: failures leave nothing behind ----------------
@@ -276,7 +276,7 @@ def test_06_ST_02_rejected_evaluation_stores_nothing(
     with pytest.raises(ValidationError):
         evaluate(model, dataset, "regression")        # task mismatch
 
-    assert evaluation_service.list_evaluations() == []
+    assert evaluation_service.list_evaluations(owner()) == []
 
 
 def test_06_ST_02_model_that_crashes_while_predicting_gives_a_clear_error_and_stores_nothing(
@@ -290,4 +290,4 @@ def test_06_ST_02_model_that_crashes_while_predicting_gives_a_clear_error_and_st
     with pytest.raises(ValidationError, match="Evaluation failed while running the model"):
         evaluate(model, dataset, "classification")
 
-    assert evaluation_service.list_evaluations() == []
+    assert evaluation_service.list_evaluations(owner()) == []

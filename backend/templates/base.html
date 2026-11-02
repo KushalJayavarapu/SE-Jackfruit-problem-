@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}Model Evaluator{% endblock %} · Model Evaluator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-page="{% block page %}{% endblock %}">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  {% if current_user %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Model Evaluator home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="brand-name">Model Evaluator</span>
+      </a>
+      <nav class="mainnav" aria-label="Main">
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin_users_page') }}" {% if active == 'admin_users' %}aria-current="page"{% endif %}>Accounts</a>
+          <a href="{{ url_for('admin_audit_page') }}" {% if active == 'admin_audit' %}aria-current="page"{% endif %}>Audit log</a>
+          <span class="nav-divider" aria-hidden="true"></span>
+        {% endif %}
+        <a href="{{ url_for('dashboard') }}" {% if active == 'dashboard' %}aria-current="page"{% endif %}>Overview</a>
+        <a href="{{ url_for('models_page') }}" {% if active == 'models' %}aria-current="page"{% endif %}>Models</a>
+        <a href="{{ url_for('datasets_page') }}" {% if active == 'datasets' %}aria-current="page"{% endif %}>Datasets</a>
+        <a href="{{ url_for('evaluate_page') }}" {% if active == 'evaluate' %}aria-current="page"{% endif %}>Evaluate</a>
+        <a href="{{ url_for('history_page') }}" {% if active == 'history' %}aria-current="page"{% endif %}>History</a>
+      </nav>
+      <div class="account">
+        <span class="account-name">{{ current_user.name }}</span>
+        <span class="role role-{{ current_user.role }}">{{ current_user.role|capitalize }}</span>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="button-link">Log out</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main id="main-content" class="{% block main_class %}page{% endblock %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <p class="notice notice-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <dialog id="confirm-dialog" class="dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-body"></p>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Cancel</button>
+        <button value="confirm" id="confirm-ok">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

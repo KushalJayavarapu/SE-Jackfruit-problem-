@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "_macros.html" import metric_value %}
+{% block title %}Evaluation{% endblock %}
+{% block page %}evaluation{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="{{ url_for('history_page') }}">History</a><span aria-hidden="true">/</span><span>This evaluation</span></nav>
+<header class="page-head with-actions">
+  <div>
+    <h1 class="eval-title">{{ evaluation.model_filename }} <span class="on">on</span> {{ evaluation.dataset_filename }}</h1>
+    <p class="lede">
+      <span class="task task-{{ evaluation.task_type }}">{{ evaluation.task_type|capitalize }}</span>
+      {{ '{:,}'.format(evaluation.row_count) }} rows, target column <code>{{ evaluation.target_variable }}</code>,
+      run on <time datetime="{{ evaluation.evaluated_at }}" data-local-time>{{ evaluation.evaluated_at[:16]|replace('T', ' ') }} UTC</time>
+    </p>
+  </div>
+  <div class="head-actions">
+    <a class="button secondary" href="{{ url_for('evaluate_page') }}">New evaluation</a>
+    <button type="button" class="js-report" data-ids="{{ evaluation.id }}">Download report</button>
+  </div>
+</header>
+
+<section aria-labelledby="metrics-heading">
+  <h2 id="metrics-heading" class="section-title">Metrics</h2>
+  <div class="readouts">
+    {% for key in metric_keys %}
+      {% set value = evaluation.metrics.get(key) %}
+      {% set name, higher = metric_info[key] %}
+      <div class="readout{% if value is none %} unavailable{% endif %}">
+        <span class="readout-name">{{ name }}</span>
+        <span class="readout-value">{{ metric_value(value) }}</span>
+        {% if value is not none and evaluation.task_type == 'classification' %}
+          <span class="gauge" aria-hidden="true"><span style="width: {{ (value * 100)|round(1) }}%"></span></span>
+        {% endif %}
+        <span class="readout-hint">{% if value is none %}Not available for this model{% else %}{{ 'Higher' if higher else 'Lower' }} is better{% endif %}</span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if evaluation.notes %}
+<section class="notes" aria-label="Notes">
+  {% for note in evaluation.notes %}<p class="notice notice-info">{{ note }}</p>{% endfor %}
+</section>
+{% endif %}
+
+<section aria-labelledby="charts-heading">
+  <h2 id="charts-heading" class="section-title">Charts</h2>
+  {% if evaluation.charts %}
+  <div class="charts">
+    {% for chart in evaluation.charts %}
+      <figure class="chart">
+        <figcaption>{{ chart.title }}</figcaption>
+        <img src="{{ url_for('api_evaluation_chart', evaluation_id=evaluation.id, kind=chart.kind) }}" alt="{{ chart.title }} for {{ evaluation.model_filename }}" loading="lazy">
+      </figure>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty">No charts could be drawn for this evaluation.</p>
+  {% endif %}
+</section>
+
+<section class="panel details" aria-labelledby="details-heading">
+  <h2 id="details-heading">Details</h2>
+  <dl class="facts">
+    <dt>Model</dt><dd>{{ evaluation.model_filename }}{% if evaluation.model_type %} ({{ evaluation.model_type }}){% endif %}</dd>
+    <dt>Dataset</dt><dd>{{ evaluation.dataset_filename }}</dd>
+    <dt>Task type</dt><dd>{{ evaluation.task_type|capitalize }}</dd>
+    <dt>Rows evaluated</dt><dd>{{ '{:,}'.format(evaluation.row_count) }}</dd>
+    <dt>Run time</dt><dd>{{ '%.3f'|format(evaluation.duration_seconds) }} seconds</dd>
+    <dt>Evaluation ID</dt><dd><code>{{ evaluation.id }}</code></dd>
+  </dl>
+</section>
+{% endblock %}
