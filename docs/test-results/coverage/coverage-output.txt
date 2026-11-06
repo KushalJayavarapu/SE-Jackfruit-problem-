@@ -1,0 +1,30 @@
+﻿........................................................................ [ 32%]
+........................................................................ [ 65%]
+........................................................................ [ 98%]
+...                                                                      [100%]
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.14.6-final-0 _______________
+
+Name                                Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------
+app.py                                345     10     50      3    96%   125, 140-142, 167, 409-410, 496-497, 502
+config.py                              28      3      6      2    85%   41, 44-45
+services\__init__.py                    0      0      0      0   100%
+services\admin_service.py              54      1     22      1    97%   32
+services\auth_service.py               62      3     28      3    93%   29, 42, 63
+services\compatibility.py              16      1      6      1    91%   27
+services\dataset_service.py            84      5     26      2    94%   105-107, 111-112, 167->169
+services\db.py                         59      3      4      0    95%   115-117
+services\errors.py                      3      0      0      0   100%
+services\evaluation_service.py        115      9     42      2    93%   32-33, 44-45, 96-97, 102, 108, 145
+services\metrics.py                    24      2      4      0    93%   42-43
+services\model_service.py              69      0     18      1    99%   134->136
+services\report_service.py             73      4     20      2    91%   46, 132-134
+services\timeutil.py                    3      0      0      0   100%
+services\visualization_service.py     175      6     44      5    93%   55-59, 65->72, 80, 88->90, 162->168
+-------------------------------------------------------------------------------
+TOTAL                                1110     47    270     22    94%
+Coverage HTML written to dir C:\Users\Kushal\bl15-results\htmlcov
+Coverage XML written to file C:\Users\Kushal\bl15-results\coverage.xml
+Coverage JSON written to file C:\Users\Kushal\bl15-results\coverage.json
+219 passed in 63.08s (0:01:03)
